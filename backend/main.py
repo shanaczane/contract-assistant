@@ -41,6 +41,9 @@ class AskRequest(BaseModel):
     conversation_id: str
     question: str
 
+class ConversationRequest(BaseModel):
+    contract_id: str
+
 @app.get("/")
 def read_root():
     return {"message": "Contract Assistant API is running!"}
@@ -155,3 +158,14 @@ async def ask(request: AskRequest):
         "answer": ai_message
     }
 
+@app.post("/conversations")
+def create_conversation(request: ConversationRequest):
+
+    # Insert into supabase conversations
+    response = supabase.schema("project5").table("conversations").insert({
+        "contract_id": request.contract_id
+    }).execute()
+
+    return {
+        "conversation_id": response.data[0]["id"]
+    }
