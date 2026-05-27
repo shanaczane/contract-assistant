@@ -92,3 +92,66 @@ async def upload_contract(file: UploadFile =  File(...)):
         "chunks_created" : len(chunks)
     }
 
+@app.post("/ask")
+async def ask(request: AskRequest):
+
+    # Step 1: Convert question to embeddings
+    embeddings = model.encode(request.question).tolist()
+
+    # Step 2: Search contract chunks for relevant content
+    results = supabase.schema("project5").rpc("match_contract_chunks", {
+        "query_embedding": embeddings,
+        "contract_id": request.contract_id,
+        "match_count": 5
+    }).execute()
+
+    # Step 3: Get past messages from Supabase for memory
+    past_messages = supabase.schema("project5").table("messages").select("*").eq("conversation_id", request.conversation_id).execute()
+
+    history = [{
+        "role": "system",
+        "content": """
+        You are a legal document assistant. 
+        Answer questions based on the contract provided.
+        If something is unclear or potentially risky, flag it.
+        Always cite which part of the contract you're referencing."""
+    }]
+
+    # Step 4: Format past messages for Groq
+    for messages in past_messages.data:
+        history.append({
+            "role": messages["role"],
+            "content": messages["content"]
+        })
+
+    # Step 5: Add contract context
+    context = "\n\n".join([r["content"] for r in results.data])
+
+    # Step 6: Add new question with context
+    history.append({
+        "role": "user",
+        "content": f"Context from contract:\n{context}\n\nQuestion: {request.question}"
+    })
+
+    # Step 7: Send to Groq then save to supabase
+    response = llm.invoke(history)
+    ai_message = response.content
+
+    # Step 8: Save user and ai message to supabase
+    supabase.schema("project5").table("messages").insert({
+        "conversation_id": request.conversation_id,
+        "role": "user",
+        "content": request.question
+    }).execute()
+
+    
+    supabase.schema("project5").table("messages").insert({
+        "conversation_id": request.conversation_id,
+        "role": "assistant",
+        "content": ai_message
+    }).execute()
+
+    return {
+        "answer": ai_message
+    }
+
