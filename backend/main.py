@@ -204,7 +204,12 @@ async def analyze(request: AnalyzeRequest):
         }
     ])
 
-    # Step 4: Return structured analysis
+    # Step 4: Save analysis to Supabase
+    supabase.schema("project5").table("contracts").update({
+        "analysis": response.content
+    }).eq("id", request.contract_id).execute()
+
+    # Step 5: Return analysis
     return {
-        "response": response.content
+    "analysis": response.content
     }
