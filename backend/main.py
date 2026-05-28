@@ -44,6 +44,9 @@ class AskRequest(BaseModel):
 class ConversationRequest(BaseModel):
     contract_id: str
 
+class AnalyzeRequest(BaseModel):
+    contract_id: str
+
 @app.get("/")
 def read_root():
     return {"message": "Contract Assistant API is running!"}
@@ -168,4 +171,40 @@ def create_conversation(request: ConversationRequest):
 
     return {
         "conversation_id": response.data[0]["id"]
+    }
+
+@app.post("/analyze")
+async def analyze(request: AnalyzeRequest):
+
+    # Step 1: Get contract_chunks from supabase
+    chunks = supabase.schema("project5").table("contract_chunks").select("content").eq("contract_id", request.contract_id).execute()
+
+    # Step 2: Join all chunks into one big text
+    full_text = "\n\n".join([c["content"]for c in chunks.data])
+
+    # Step 3: Send full text to Groq and prompt instructions
+    response = llm.invoke([
+        {
+        "role": "system",
+        "content": """You are a legal document analyst.
+        Analyze the contract and provide:
+        1. Summary — what is this contract about?
+        2. Parties involved — who is signing?
+        3. Key obligations — what must each party do?
+        4. Payment terms — money, deadlines, penalties
+        5. Termination — how to end the contract
+        6. Red flags — anything dangerous or unusual 
+        7. Risk level — Low, Medium or High
+        
+        Be specific and cite the exact sections."""
+        },
+        {
+            "role": "user",
+            "content": f"Please analyze this contract: \n\n{full_text}"
+        }
+    ])
+
+    # Step 4: Return structured analysis
+    return {
+        "response": response.content
     }
