@@ -71,6 +71,20 @@ export default function Home() {
     }
   };
 
+  const handleReset = () => {
+    setContractId(null);
+    setFileName(null);
+    setChunks(null);
+    setUploadError(null);
+    setAnalyzing(false);
+    setAnalysis(null);
+    setAnalysisError(null);
+    setMessages([]);
+    setConversationId(null);
+    setChatLoading(false);
+    setChatError(null);
+  };
+
   const handleSend = async (question: string) => {
     if (!contractId) return;
     setMessages((prev) => [...prev, { role: "user", content: question }]);
@@ -121,6 +135,7 @@ export default function Home() {
           analyzed={analyzed}
           onFile={handleFile}
           onAnalyze={handleAnalyze}
+          onReset={handleReset}
         />
 
         {(analyzing || analyzed || analysisError) && (

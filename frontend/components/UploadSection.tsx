@@ -12,6 +12,7 @@ interface Props {
   analyzed: boolean;
   onFile: (file: File) => void;
   onAnalyze: () => void;
+  onReset: () => void;
 }
 
 export default function UploadSection({
@@ -24,6 +25,7 @@ export default function UploadSection({
   analyzed,
   onFile,
   onAnalyze,
+  onReset,
 }: Props) {
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -43,27 +45,27 @@ export default function UploadSection({
 
   return (
     <section>
-      <p className="text-xs font-semibold text-[#64748B] tracking-widest uppercase mb-4">
+      <p className="text-xs font-semibold text-brand-muted tracking-widest uppercase mb-4">
         01 / Upload contract
       </p>
 
-      <div className="bg-white rounded-2xl border border-[#E2E8F0] p-6">
+      <div className="bg-white rounded-2xl border border-brand-border p-6">
         {!uploaded ? (
           <>
             <div
               className={`border-2 border-dashed rounded-xl p-12 flex flex-col items-center justify-center cursor-pointer transition-all duration-200 select-none ${
                 dragging
-                  ? "border-[#2563EB] bg-blue-50"
-                  : "border-[#E2E8F0] hover:border-[#2563EB] hover:bg-[#F8FAFC]"
+                  ? "border-brand-primary bg-blue-50"
+                  : "border-brand-border hover:border-brand-primary hover:bg-brand-bg"
               }`}
               onDrop={handleDrop}
               onDragOver={handleDragOver}
               onDragLeave={() => setDragging(false)}
               onClick={() => !uploading && fileInputRef.current?.click()}
             >
-              <div className="w-12 h-12 bg-[#F8FAFC] border border-[#E2E8F0] rounded-xl flex items-center justify-center mb-4">
+              <div className="w-12 h-12 bg-brand-bg border border-brand-border rounded-xl flex items-center justify-center mb-4">
                 <svg
-                  className="w-6 h-6 text-[#64748B]"
+                  className="w-6 h-6 text-brand-muted"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -79,15 +81,15 @@ export default function UploadSection({
 
               {uploading ? (
                 <div className="flex items-center gap-2.5">
-                  <div className="w-4 h-4 border-2 border-[#2563EB] border-t-transparent rounded-full animate-spin" />
-                  <p className="text-sm text-[#64748B]">Uploading...</p>
+                  <div className="w-4 h-4 border-2 border-brand-primary border-t-transparent rounded-full animate-spin" />
+                  <p className="text-sm text-brand-muted">Uploading...</p>
                 </div>
               ) : (
                 <>
-                  <p className="text-sm font-medium text-[#0F172A]">
+                  <p className="text-sm font-medium text-brand-text">
                     Drop your PDF here, or click to browse
                   </p>
-                  <p className="text-xs text-[#64748B] mt-1">PDF files only</p>
+                  <p className="text-xs text-brand-muted mt-1">PDF files only</p>
                 </>
               )}
 
@@ -104,7 +106,7 @@ export default function UploadSection({
             </div>
 
             {uploadError && (
-              <div className="mt-3 flex items-center gap-2 text-sm text-[#EF4444]">
+              <div className="mt-3 flex items-center gap-2 text-sm text-brand-danger">
                 <svg className="w-4 h-4 shrink-0" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
@@ -120,7 +122,7 @@ export default function UploadSection({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-red-50 rounded-xl flex items-center justify-center shrink-0">
-                <svg className="w-5 h-5 text-[#EF4444]" fill="currentColor" viewBox="0 0 20 20">
+                <svg className="w-5 h-5 text-brand-danger" fill="currentColor" viewBox="0 0 20 20">
                   <path
                     fillRule="evenodd"
                     d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z"
@@ -129,21 +131,34 @@ export default function UploadSection({
                 </svg>
               </div>
               <div>
-                <p className="text-sm font-medium text-[#0F172A]">{fileName}</p>
-                <p className="text-xs text-[#64748B]">{chunks} chunks extracted</p>
+                <p className="text-sm font-medium text-brand-text">{fileName}</p>
+                <p className="text-xs text-brand-muted">{chunks} chunks extracted</p>
               </div>
             </div>
-            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#22C55E]" />
-              Ready
-            </span>
+            <div className="flex items-center gap-3">
+              {!analyzing && (
+                <button
+                  onClick={onReset}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-border text-xs font-medium text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-colors"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                  Upload another
+                </button>
+              )}
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600">
+                <span className="w-1.5 h-1.5 rounded-full bg-brand-success" />
+                Ready
+              </span>
+            </div>
           </div>
         )}
 
         {uploaded && !analyzed && !analyzing && (
           <button
             onClick={onAnalyze}
-            className="mt-5 w-full h-10 bg-[#2563EB] text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            className="mt-5 w-full h-10 bg-brand-primary text-white text-sm font-medium rounded-xl hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
