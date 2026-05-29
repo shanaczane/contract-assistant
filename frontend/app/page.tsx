@@ -11,29 +11,40 @@ import { clearSession, loadSession, saveSession } from "../lib/session";
 import type { Message, ParsedAnalysis } from "../lib/types";
 
 export default function Home() {
-  // Initialise from localStorage — loadSession() returns EMPTY on the server
-  const [session] = useState(loadSession);
-
   // Upload
-  const [contractId, setContractId] = useState<string | null>(session.contractId);
-  const [fileName, setFileName] = useState<string | null>(session.fileName);
-  const [chunks, setChunks] = useState<number | null>(session.chunks);
+  const [contractId, setContractId] = useState<string | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [chunks, setChunks] = useState<number | null>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Analysis
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<ParsedAnalysis | null>(session.analysis);
+  const [analysis, setAnalysis] = useState<ParsedAnalysis | null>(null);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // Chat
-  const [messages, setMessages] = useState<Message[]>(session.messages);
-  const [conversationId, setConversationId] = useState<string | null>(session.conversationId);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
 
-  // Persist whenever any durable state changes
+  // After hydration, restore session from localStorage
   useEffect(() => {
+    const s = loadSession();
+    if (s.contractId) {
+      setContractId(s.contractId);
+      setFileName(s.fileName);
+      setChunks(s.chunks);
+      setAnalysis(s.analysis);
+      setMessages(s.messages);
+      setConversationId(s.conversationId);
+    }
+  }, []);
+
+  // Persist whenever durable state changes (guard skips the initial null render)
+  useEffect(() => {
+    if (!contractId) return;
     saveSession({ contractId, fileName, chunks, analysis, messages, conversationId });
   }, [contractId, fileName, chunks, analysis, messages, conversationId]);
 
