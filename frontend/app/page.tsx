@@ -1,32 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Header from "../components/Header";
 import UploadSection from "../components/UploadSection";
 import AnalysisSection from "../components/AnalysisSection";
 import ChatSection from "../components/ChatSection";
 import { API_BASE } from "../lib/constants";
 import { parseAnalysis } from "../lib/parseAnalysis";
+import { clearSession, loadSession, saveSession } from "../lib/session";
 import type { Message, ParsedAnalysis } from "../lib/types";
 
 export default function Home() {
+  // Initialise from localStorage — loadSession() returns EMPTY on the server
+  const [session] = useState(loadSession);
+
   // Upload
-  const [contractId, setContractId] = useState<string | null>(null);
-  const [fileName, setFileName] = useState<string | null>(null);
-  const [chunks, setChunks] = useState<number | null>(null);
+  const [contractId, setContractId] = useState<string | null>(session.contractId);
+  const [fileName, setFileName] = useState<string | null>(session.fileName);
+  const [chunks, setChunks] = useState<number | null>(session.chunks);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
 
   // Analysis
   const [analyzing, setAnalyzing] = useState(false);
-  const [analysis, setAnalysis] = useState<ParsedAnalysis | null>(null);
+  const [analysis, setAnalysis] = useState<ParsedAnalysis | null>(session.analysis);
   const [analysisError, setAnalysisError] = useState<string | null>(null);
 
   // Chat
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [conversationId, setConversationId] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>(session.messages);
+  const [conversationId, setConversationId] = useState<string | null>(session.conversationId);
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
+
+  // Persist whenever any durable state changes
+  useEffect(() => {
+    saveSession({ contractId, fileName, chunks, analysis, messages, conversationId });
+  }, [contractId, fileName, chunks, analysis, messages, conversationId]);
 
   const handleFile = async (file: File) => {
     if (!file.name.toLowerCase().endsWith(".pdf")) {
@@ -72,6 +81,7 @@ export default function Home() {
   };
 
   const handleReset = () => {
+    clearSession();
     setContractId(null);
     setFileName(null);
     setChunks(null);
