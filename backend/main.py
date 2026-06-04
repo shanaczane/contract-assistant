@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, HTTPException, UploadFile, File
 from fastapi.middleware.cors import CORSMiddleware
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -51,6 +51,13 @@ class AnalyzeRequest(BaseModel):
 def read_root():
     return {"message": "Contract Assistant API is running!"}
 
+@app.get("/contracts/{contract_id}")
+def get_contract(contract_id: str):
+    result = supabase.schema("project5").table("contracts").select("id", "name").eq("id", contract_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Contract not found")
+    return result.data[0]
+
 @app.post("/upload-contract")
 async def upload_contract(file: UploadFile =  File(...)):
 
@@ -101,6 +108,16 @@ async def upload_contract(file: UploadFile =  File(...)):
 @app.post("/ask")
 async def ask(request: AskRequest):
 
+    # Ensure the conversation exists — stale localStorage sessions may reference a deleted row
+    conv_check = supabase.schema("project5").table("conversations").select("id").eq("id", request.conversation_id).execute()
+    if conv_check.data:
+        conversation_id = request.conversation_id
+    else:
+        new_conv = supabase.schema("project5").table("conversations").insert({
+            "contract_id": request.contract_id
+        }).execute()
+        conversation_id = new_conv.data[0]["id"]
+
     # Step 1: Convert question to embeddings
     embeddings = model.encode(request.question).tolist()
 
@@ -112,7 +129,7 @@ async def ask(request: AskRequest):
     }).execute()
 
     # Step 3: Get past messages from Supabase for memory
-    past_messages = supabase.schema("project5").table("messages").select("*").eq("conversation_id", request.conversation_id).execute()
+    past_messages = supabase.schema("project5").table("messages").select("*").eq("conversation_id", conversation_id).execute()
 
     history = [{
         "role": "system",
@@ -145,20 +162,20 @@ async def ask(request: AskRequest):
 
     # Step 8: Save user and ai message to supabase
     supabase.schema("project5").table("messages").insert({
-        "conversation_id": request.conversation_id,
+        "conversation_id": conversation_id,
         "role": "user",
         "content": request.question
     }).execute()
 
-    
     supabase.schema("project5").table("messages").insert({
-        "conversation_id": request.conversation_id,
+        "conversation_id": conversation_id,
         "role": "assistant",
         "content": ai_message
     }).execute()
 
     return {
-        "answer": ai_message
+        "answer": ai_message,
+        "conversation_id": conversation_id
     }
 
 @app.post("/conversations")

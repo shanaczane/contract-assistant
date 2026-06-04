@@ -29,17 +29,33 @@ export default function Home() {
   const [chatLoading, setChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
 
-  // After hydration, restore session from localStorage
+  // After hydration, restore session — validate the contract still exists first
   useEffect(() => {
     const s = loadSession();
-    if (s.contractId) {
+    if (!s.contractId) return;
+
+    const apply = () => {
       setContractId(s.contractId);
       setFileName(s.fileName);
       setChunks(s.chunks);
       setAnalysis(s.analysis);
       setMessages(s.messages);
       setConversationId(s.conversationId);
-    }
+    };
+
+    fetch(`${API_BASE}/contracts/${s.contractId}`)
+      .then((res) => {
+        if (res.ok) {
+          apply();
+        } else {
+          // Contract deleted from DB — stale session, wipe it
+          clearSession();
+        }
+      })
+      .catch(() => {
+        // Backend unreachable — restore anyway so the UI isn't blank
+        apply();
+      });
   }, []);
 
   // Persist whenever durable state changes (guard skips the initial null render)
@@ -131,6 +147,10 @@ export default function Home() {
       });
       if (!askRes.ok) throw new Error("Failed to get answer");
       const askData = await askRes.json();
+      // Backend may have created a new conversation if the saved one was stale
+      if (askData.conversation_id && askData.conversation_id !== convId) {
+        setConversationId(askData.conversation_id);
+      }
       setMessages((prev) => [...prev, { role: "assistant", content: askData.answer }]);
     } catch (err) {
       setChatError(err instanceof Error ? err.message : "Failed to send message");
@@ -142,7 +162,7 @@ export default function Home() {
   const analyzed = !!analysis;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC]">
+    <div className="min-h-screen bg-brand-bg">
       <Header />
 
       <main className="max-w-4xl mx-auto px-6 py-10 space-y-10">
