@@ -7,6 +7,7 @@ from dotenv import load_dotenv
 from supabase import create_client
 from langchain_groq import ChatGroq
 from pydantic import BaseModel
+from pinecone import Pinecone
 import tempfile
 import os
 
@@ -26,6 +27,10 @@ supabase = create_client(
     os.getenv("SUPABASE_URL"),
     os.getenv("SUPABASE_KEY")
 )
+
+# Connect to Pinecone
+pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
+pinecone_index = pc.Index(os.getenv("PINECONE_INDEX"))
 
 # Load Embedding Model
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -96,6 +101,21 @@ async def upload_contract(file: UploadFile =  File(...)):
         for chunk in chunks
     ]).execute()
 
+    # Step 6: Save embeddings to Pinecone
+    pinecone_index.upsert(
+        vectors=[
+            {
+                "id": f"{contract_id}-{i}",
+                "values": model.encode(chunk.page_content).tolist(),
+                "metadata":{
+                    "contract_id": contract_id,
+                    "content": chunk.page_content
+                }
+            }
+            for i, chunk in enumerate(chunks)
+        ]
+    )
+
     # Cleanup temp file
     os.unlink(tmp_path)
 
@@ -121,12 +141,13 @@ async def ask(request: AskRequest):
     # Step 1: Convert question to embeddings
     embeddings = model.encode(request.question).tolist()
 
-    # Step 2: Search contract chunks for relevant content
-    results = supabase.schema("project5").rpc("match_contract_chunks", {
-        "query_embedding": embeddings,
-        "contract_id": request.contract_id,
-        "match_count": 5
-    }).execute()
+    # Step 2: Search Pinecone for relevant chunks
+    pinecone_results = pinecone_index.query(
+        vector=embeddings,
+        filter={"contract_id": request.contract_id},
+        top_k=5,
+        include_metadata=True
+    )
 
     # Step 3: Get past messages from Supabase for memory
     past_messages = supabase.schema("project5").table("messages").select("*").eq("conversation_id", conversation_id).execute()
@@ -148,7 +169,10 @@ async def ask(request: AskRequest):
         })
 
     # Step 5: Add contract context
-    context = "\n\n".join([r["content"] for r in results.data])
+    context = "\n\n".join([
+        match["metadata"]["content"] 
+        for match in pinecone_results["matches"]
+    ])
 
     # Step 6: Add new question with context
     history.append({

@@ -8,3 +8,4 @@ langchain-text-splitters
 langgraph
 pypdf
 duckduckgo-search
+pinecone
