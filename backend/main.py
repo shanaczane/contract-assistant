@@ -96,7 +96,6 @@ async def upload_contract(file: UploadFile =  File(...)):
         {
             "contract_id": contract_id,
             "content": chunk.page_content,
-            "embedding": model.encode(chunk.page_content).tolist()
         }
         for chunk in chunks
     ]).execute()
