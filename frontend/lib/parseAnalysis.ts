@@ -26,14 +26,8 @@ export function parseAnalysis(raw: string): ParsedAnalysis {
   const obligations = getSectionContent(raw, "Key Obligations") || getSectionContent(raw, "Obligations");
   const payment = getSectionContent(raw, "Payment Terms");
   const termination = getSectionContent(raw, "Termination");
-  const redFlagsRaw = getSectionContent(raw, "Red Flags");
+  const redFlags = getSectionContent(raw, "Red Flags");
   const riskRaw = getSectionContent(raw, "Risk Level");
-
-  const redFlags = redFlagsRaw
-    .split("\n")
-    .filter((l) => l.trim().length > 0)
-    .map((l) => l.replace(/^[-*•]\s*/, "").trim())
-    .filter((l) => l.length > 0);
 
   let riskLevel: RiskLevel | null = null;
   const riskText = riskRaw || raw;

@@ -24,7 +24,16 @@ export function loadSession(): Session {
   if (typeof window === "undefined") return EMPTY;
   try {
     const raw = localStorage.getItem(KEY);
-    return raw ? { ...EMPTY, ...JSON.parse(raw) } : EMPTY;
+    if (!raw) return EMPTY;
+    const parsed: Session = { ...EMPTY, ...JSON.parse(raw) };
+    // Normalize redFlags from legacy string[] to string
+    if (parsed.analysis && Array.isArray((parsed.analysis as unknown as { redFlags: unknown }).redFlags)) {
+      parsed.analysis = {
+        ...parsed.analysis,
+        redFlags: ((parsed.analysis as unknown as { redFlags: string[] }).redFlags).join("\n\n"),
+      };
+    }
+    return parsed;
   } catch {
     return EMPTY;
   }

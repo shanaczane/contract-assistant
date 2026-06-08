@@ -6,7 +6,7 @@ export interface ParsedAnalysis {
   obligations: string;
   payment: string;
   termination: string;
-  redFlags: string[];
+  redFlags: string;
   riskLevel: RiskLevel | null;
 }
 
