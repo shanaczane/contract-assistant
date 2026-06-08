@@ -1,34 +1,33 @@
 import type { ParsedAnalysis, RiskLevel } from "./types";
 
-// Handles formats like: "**1. Summary**", "## 1. Summary", "1. Summary"
-function getSectionContent(text: string, num: number): string {
+// Matches ## Heading Name or numbered variants like ## 1. Heading Name or 1. Heading Name
+function getSectionContent(text: string, heading: string): string {
+  const escaped = heading.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const startRe = new RegExp(
-    `(?:^|\\n)[#*\\s]*${num}[.):]\\s+[\\w\\s/&]+?[*\\s]*\\n`,
+    `(?:^|\\n)[#*\\s]*(?:\\d+[.):s]+)?\\s*${escaped}[^\\n]*\\n`,
     "i"
   );
-  const endRe = new RegExp(
-    `(?:^|\\n)[#*\\s]*${num + 1}[.):]\\s+`,
-    "i"
-  );
+  const endRe = /(?:^|\n)#{1,3}\s+\S/;
 
   const startMatch = startRe.exec(text);
   if (!startMatch) return "";
 
   const contentStart = startMatch.index + startMatch[0].length;
   const remaining = text.slice(contentStart);
-  const endMatch = endRe.exec(remaining);
 
+  // Find the next ## heading to know where this section ends
+  const endMatch = endRe.exec(remaining);
   return (endMatch ? remaining.slice(0, endMatch.index) : remaining).trim();
 }
 
 export function parseAnalysis(raw: string): ParsedAnalysis {
-  const summary = getSectionContent(raw, 1);
-  const parties = getSectionContent(raw, 2);
-  const obligations = getSectionContent(raw, 3);
-  const payment = getSectionContent(raw, 4);
-  const termination = getSectionContent(raw, 5);
-  const redFlagsRaw = getSectionContent(raw, 6);
-  const riskRaw = getSectionContent(raw, 7);
+  const summary = getSectionContent(raw, "Summary");
+  const parties = getSectionContent(raw, "Parties");
+  const obligations = getSectionContent(raw, "Key Obligations") || getSectionContent(raw, "Obligations");
+  const payment = getSectionContent(raw, "Payment Terms");
+  const termination = getSectionContent(raw, "Termination");
+  const redFlagsRaw = getSectionContent(raw, "Red Flags");
+  const riskRaw = getSectionContent(raw, "Risk Level");
 
   const redFlags = redFlagsRaw
     .split("\n")
