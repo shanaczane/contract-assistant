@@ -1,27 +1,39 @@
 @import "tailwindcss";
 
+/* Enable class-based dark mode — adds .dark parent class support for dark: variants */
+@variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-  --color-brand-bg: #F8FAFC;
+  /* Light mode defaults */
+  --color-brand-bg:      #F8FAFC;
+  --color-brand-surface: #FFFFFF;
   --color-brand-primary: #2563EB;
-  --color-brand-text: #0F172A;
-  --color-brand-muted: #64748B;
-  --color-brand-border: #E2E8F0;
-  --color-brand-danger: #EF4444;
+  --color-brand-text:    #0F172A;
+  --color-brand-muted:   #64748B;
+  --color-brand-border:  #E2E8F0;
+  --color-brand-danger:  #EF4444;
   --color-brand-success: #22C55E;
   --color-brand-warning: #F59E0B;
 }
 
+/* Dark mode overrides — apply when <html> has class="dark" */
+.dark {
+  --color-brand-bg:      #0F172A;
+  --color-brand-surface: #1E293B;
+  --color-brand-primary: #3B82F6;
+  --color-brand-text:    #F1F5F9;
+  --color-brand-muted:   #94A3B8;
+  --color-brand-border:  #334155;
+  --color-brand-danger:  #F87171;
+  --color-brand-success: #34D399;
+  --color-brand-warning: #FBBF24;
+}
+
 @keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 .animate-fade-in {
@@ -29,37 +41,32 @@
 }
 
 body {
-  background-color: #F8FAFC;
-  color: #0F172A;
+  background-color: var(--color-brand-bg);
+  color: var(--color-brand-text);
   font-family: var(--font-sans);
 }
 
-/* Markdown prose styles used inside analysis cards and chat messages */
+/* ── Markdown prose ───────────────────────────────────────────────────── */
 .prose-contract p {
   margin-bottom: 0.6em;
   line-height: 1.7;
-  color: #0F172A;
+  color: var(--color-brand-text);
 }
 
-.prose-contract p:last-child {
-  margin-bottom: 0;
-}
+.prose-contract p:last-child { margin-bottom: 0; }
 
-/* Bullet lists */
 .prose-contract ul {
   list-style-type: disc;
   padding-left: 1.4em;
   margin-bottom: 0.6em;
 }
 
-/* Numbered lists */
 .prose-contract ol {
   list-style-type: decimal;
   padding-left: 1.4em;
   margin-bottom: 0.6em;
 }
 
-/* Nested lists */
 .prose-contract ul ul {
   list-style-type: circle;
   margin-top: 0.2em;
@@ -76,18 +83,15 @@ body {
 .prose-contract li {
   margin-bottom: 0.3em;
   line-height: 1.65;
-  color: #0F172A;
+  color: var(--color-brand-text);
 }
 
-.prose-contract li:last-child {
-  margin-bottom: 0;
-}
+.prose-contract li:last-child { margin-bottom: 0; }
 
-/* Headings */
 .prose-contract h1 {
   font-size: 1.125em;
   font-weight: 700;
-  color: #0F172A;
+  color: var(--color-brand-text);
   margin-top: 1em;
   margin-bottom: 0.5em;
 }
@@ -95,7 +99,7 @@ body {
 .prose-contract h2 {
   font-size: 1em;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--color-brand-text);
   margin-top: 0.9em;
   margin-bottom: 0.4em;
 }
@@ -103,41 +107,34 @@ body {
 .prose-contract h3 {
   font-size: 0.9375em;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--color-brand-text);
   margin-top: 0.8em;
   margin-bottom: 0.3em;
 }
 
 .prose-contract h1:first-child,
 .prose-contract h2:first-child,
-.prose-contract h3:first-child {
-  margin-top: 0;
-}
+.prose-contract h3:first-child { margin-top: 0; }
 
-/* Inline formatting */
 .prose-contract strong {
   font-weight: 600;
-  color: #0F172A;
+  color: var(--color-brand-text);
 }
 
-.prose-contract em {
-  font-style: italic;
-}
+.prose-contract em { font-style: italic; }
 
-/* Inline code */
 .prose-contract code {
-  background-color: #F1F5F9;
+  background-color: var(--color-brand-bg);
   padding: 0.15em 0.35em;
   border-radius: 4px;
   font-size: 0.85em;
   font-family: ui-monospace, monospace;
-  color: #0F172A;
+  color: var(--color-brand-text);
 }
 
-/* Code blocks */
 .prose-contract pre {
-  background-color: #F1F5F9;
-  border: 1px solid #E2E8F0;
+  background-color: var(--color-brand-bg);
+  border: 1px solid var(--color-brand-border);
   border-radius: 8px;
   padding: 0.75em 1em;
   overflow-x: auto;
@@ -150,23 +147,20 @@ body {
   font-size: 0.85em;
 }
 
-/* Blockquotes */
 .prose-contract blockquote {
-  border-left: 3px solid #E2E8F0;
+  border-left: 3px solid var(--color-brand-border);
   padding-left: 0.85em;
   margin: 0.6em 0;
-  color: #64748B;
+  color: var(--color-brand-muted);
   font-style: italic;
 }
 
-/* Horizontal rule */
 .prose-contract hr {
   border: none;
-  border-top: 1px solid #E2E8F0;
+  border-top: 1px solid var(--color-brand-border);
   margin: 0.75em 0;
 }
 
-/* Tables */
 .prose-contract table {
   width: 100%;
   border-collapse: collapse;
@@ -177,15 +171,15 @@ body {
 .prose-contract th {
   text-align: left;
   font-weight: 600;
-  color: #0F172A;
+  color: var(--color-brand-text);
   padding: 0.4em 0.75em;
-  background-color: #F8FAFC;
-  border: 1px solid #E2E8F0;
+  background-color: var(--color-brand-bg);
+  border: 1px solid var(--color-brand-border);
 }
 
 .prose-contract td {
   padding: 0.4em 0.75em;
-  border: 1px solid #E2E8F0;
-  color: #0F172A;
+  border: 1px solid var(--color-brand-border);
+  color: var(--color-brand-text);
   vertical-align: top;
 }
