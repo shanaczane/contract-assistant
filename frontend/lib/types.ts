@@ -8,6 +8,7 @@ export interface ParsedAnalysis {
   termination: string;
   redFlags: string;
   riskLevel: RiskLevel | null;
+  riskExplanation: string;
 }
 
 export interface Message {

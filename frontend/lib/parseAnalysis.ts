@@ -29,13 +29,25 @@ export function parseAnalysis(raw: string): ParsedAnalysis {
   const redFlags = getSectionContent(raw, "Red Flags");
   const riskRaw = getSectionContent(raw, "Risk Level");
 
+  // Fallback: getSectionContent misses the last section when there's no trailing newline after the heading
+  const riskContent = riskRaw || ((): string => {
+    const m = raw.match(/##\s*(?:\d+\.?\s*)?Risk Level[^\n]*\n([\s\S]*)$/i);
+    return m ? m[1].trim() : "";
+  })();
+
   let riskLevel: RiskLevel | null = null;
-  const riskText = riskRaw || raw;
+  const riskText = riskContent || raw;
   const riskMatch = riskText.match(/\b(low|medium|high)\b/i);
   if (riskMatch) {
     const r = riskMatch[1].toLowerCase();
     riskLevel = (r.charAt(0).toUpperCase() + r.slice(1)) as RiskLevel;
   }
 
-  return { summary, parties, obligations, payment, termination, redFlags, riskLevel };
+  // Strip the leading "Low/Medium/High" label and any surrounding punctuation/markdown
+  const riskExplanation = riskContent
+    .replace(/^\*{0,2}(low|medium|high)\*{0,2}[\s\-—:.]*/i, "")
+    .replace(/[*#_]/g, "")
+    .trim();
+
+  return { summary, parties, obligations, payment, termination, redFlags, riskLevel, riskExplanation };
 }

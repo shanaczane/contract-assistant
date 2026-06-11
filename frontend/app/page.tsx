@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import UploadSection from "../components/UploadSection";
 import AnalysisSection from "../components/AnalysisSection";
 import ChatSection from "../components/ChatSection";
+import ReactMarkdown from "react-markdown";
 import { API_BASE, RISK_STYLES, SUGGESTION_QUESTIONS } from "../lib/constants";
 import { parseAnalysis } from "../lib/parseAnalysis";
 import { clearSession, loadSession, saveSession } from "../lib/session";
@@ -31,16 +32,17 @@ export default function Home() {
   // Layout
   const [activeTab, setActiveTab] = useState<"chat" | "analysis">("chat");
   const [input, setInput] = useState("");
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Dark mode — sync class on <html> and persist preference
-  useEffect(() => {
+  const [darkMode, setDarkMode] = useState(() => {
+    if (typeof window === "undefined") return false;
     const saved = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    const isDark = saved ? saved === "dark" : prefersDark;
-    setDarkMode(isDark);
-    document.documentElement.classList.toggle("dark", isDark);
-  }, []);
+    return saved ? saved === "dark" : prefersDark;
+  });
+
+  // Sync dark class on <html> on mount
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", darkMode);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const toggleDark = () => {
     const next = !darkMode;
@@ -248,15 +250,14 @@ export default function Home() {
           {analysis && (
             <div className="bg-brand-bg rounded-2xl border border-brand-border p-4 space-y-3">
               {analysis.riskLevel && (
-                <div className={`inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-xs font-medium ${RISK_STYLES[analysis.riskLevel].bg} ${RISK_STYLES[analysis.riskLevel].text}`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${RISK_STYLES[analysis.riskLevel].dot}`} />
+                <div className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${RISK_STYLES[analysis.riskLevel].bg} ${RISK_STYLES[analysis.riskLevel].text}`}>
                   {RISK_STYLES[analysis.riskLevel].label}
                 </div>
               )}
-              {analysis.summary && (
-                <p className="text-xs text-brand-muted leading-relaxed">
-                  {analysis.summary.replace(/[*#_]/g, "").trim()}
-                </p>
+              {analysis.riskExplanation && (
+                <div className="prose-contract text-xs text-brand-muted leading-relaxed">
+                  <ReactMarkdown>{analysis.riskExplanation}</ReactMarkdown>
+                </div>
               )}
               <button
                 onClick={() => setActiveTab("analysis")}

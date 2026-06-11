@@ -37,16 +37,6 @@ export default function AnalysisSection({ analyzing, analysis, analysisError }: 
         </div>
       ) : analysis ? (
         <div className="space-y-4">
-          {/* Risk badge */}
-          {analysis.riskLevel && (
-            <div
-              className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${RISK_STYLES[analysis.riskLevel].bg} ${RISK_STYLES[analysis.riskLevel].text}`}
-            >
-              <span className={`w-2 h-2 rounded-full ${RISK_STYLES[analysis.riskLevel].dot}`} />
-              {RISK_STYLES[analysis.riskLevel].label}
-            </div>
-          )}
-
           {/* 2×2 info grid */}
           <div className="grid grid-cols-2 gap-4">
             {INFO_CARDS.map(({ label, key }) => (

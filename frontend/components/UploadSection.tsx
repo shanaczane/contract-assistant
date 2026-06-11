@@ -121,8 +121,7 @@ export default function UploadSection({
                     Upload another
                   </button>
                 )}
-                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
-                  <span className="w-1.5 h-1.5 rounded-full bg-brand-success" />
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400">
                   Ready
                 </span>
               </div>
