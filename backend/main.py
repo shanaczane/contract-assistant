@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from sentence_transformers import SentenceTransformer
+from rank_bm25 import BM25Okapi
+from sentence_transformers import CrossEncoder
 from dotenv import load_dotenv
 from supabase import create_client
 from langchain_groq import ChatGroq
@@ -34,6 +36,8 @@ pinecone_index = pc.Index(os.getenv("PINECONE_INDEX"))
 
 # Load Embedding Model
 model = SentenceTransformer('all-MiniLM-L6-v2')
+
+reranker = CrossEncoder('cross-encoder/ms-marco-MiniLM-L-6-v2')
 
 llm = ChatGroq(
     api_key=os.getenv("GROQ_API_KEY"),
@@ -140,15 +144,34 @@ async def ask(request: AskRequest):
     # Step 1: Convert question to embeddings
     embeddings = model.encode(request.question).tolist()
 
-    # Step 2: Search Pinecone for relevant chunks
+    # Step 2: Dense search — get more candidates (10 instead of 5)
     pinecone_results = pinecone_index.query(
         vector=embeddings,
         filter={"contract_id": request.contract_id},
-        top_k=5,
+        top_k=10,
         include_metadata=True
     )
+    dense_chunks = [m["metadata"]["content"] for m in pinecone_results["matches"]]
 
-    # Step 3: Get past messages from Supabase for memory
+    # Step 3: BM25 search — fetch all chunks for this contract from Supabase
+    all_chunks_res = supabase.schema("project5").table("contract_chunks").select("content").eq("contract_id", request.contract_id).execute()
+    all_texts = [c["content"] for c in all_chunks_res.data]
+    tokenized = [t.lower().split() for t in all_texts]
+    bm25 = BM25Okapi(tokenized)
+    bm25_scores = bm25.get_scores(request.question.lower().split())
+    top_bm25_indices = sorted(range(len(bm25_scores)), key=lambda i: bm25_scores[i], reverse=True)[:10]
+    bm25_chunks = [all_texts[i] for i in top_bm25_indices]
+
+    # Step 4: Merge — combine both lists, remove duplicates
+    combined = list(dict.fromkeys(dense_chunks + bm25_chunks))
+
+    # Step 5: Re-rank — score each chunk against the question then take top 5
+    pairs = [[request.question, chunk] for chunk in combined]
+    scores = reranker.predict(pairs)
+    ranked = sorted(zip(scores, combined), reverse=True)
+    context = "\n\n".join([chunk for _, chunk in ranked[:5]])
+
+    # Step 6: Get past messages from Supabase for memory
     past_messages = supabase.schema("project5").table("messages").select("*").eq("conversation_id", conversation_id).execute()
 
     history = [{
@@ -179,11 +202,7 @@ async def ask(request: AskRequest):
             "content": messages["content"]
         })
 
-    # Step 5: Add contract context
-    context = "\n\n".join([
-        match["metadata"]["content"] 
-        for match in pinecone_results["matches"]
-    ])
+    
 
     # Step 6: Add new question with context
     history.append({
