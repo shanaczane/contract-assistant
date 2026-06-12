@@ -33,6 +33,10 @@ export function loadSession(): Session {
         redFlags: ((parsed.analysis as unknown as { redFlags: string[] }).redFlags).join("\n\n"),
       };
     }
+    // Normalize riskyClauses — may be missing in sessions saved before this field existed
+    if (parsed.analysis && !parsed.analysis.riskyClauses) {
+      parsed.analysis = { ...parsed.analysis, riskyClauses: [] };
+    }
     return parsed;
   } catch {
     return EMPTY;

@@ -1,4 +1,11 @@
 export type RiskLevel = "Low" | "Medium" | "High";
+export type ClauseRisk = "HIGH" | "MEDIUM" | "LOW";
+
+export interface RiskyClause {
+  level: ClauseRisk;
+  quote: string;
+  explanation: string;
+}
 
 export interface ParsedAnalysis {
   summary: string;
@@ -7,6 +14,7 @@ export interface ParsedAnalysis {
   payment: string;
   termination: string;
   redFlags: string;
+  riskyClauses: RiskyClause[];
   riskLevel: RiskLevel | null;
   riskExplanation: string;
 }
@@ -14,4 +22,5 @@ export interface ParsedAnalysis {
 export interface Message {
   role: "user" | "assistant";
   content: string;
+  sources?: string[];
 }

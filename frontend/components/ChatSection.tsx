@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
 import type { Message } from "../lib/types";
 
@@ -12,10 +12,20 @@ interface Props {
 
 export default function ChatSection({ messages, chatLoading, chatError }: Props) {
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const [expandedSources, setExpandedSources] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, chatLoading]);
+
+  const toggleSources = (idx: number) => {
+    setExpandedSources((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) next.delete(idx);
+      else next.add(idx);
+      return next;
+    });
+  };
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
@@ -35,19 +45,60 @@ export default function ChatSection({ messages, chatLoading, chatError }: Props)
           <div className="space-y-4">
             {messages.map((msg, i) => (
               <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
-                    msg.role === "user"
-                      ? "bg-brand-primary text-white rounded-tr-sm"
-                      : "bg-brand-bg text-brand-text border border-brand-border rounded-tl-sm"
-                  }`}
-                >
-                  {msg.role === "assistant" ? (
-                    <div className="prose-contract">
-                      <ReactMarkdown>{msg.content}</ReactMarkdown>
+                <div className="flex flex-col gap-1.5" style={{ maxWidth: "75%" }}>
+                  <div
+                    className={`px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                      msg.role === "user"
+                        ? "bg-brand-primary text-white rounded-tr-sm"
+                        : "bg-brand-bg text-brand-text border border-brand-border rounded-tl-sm"
+                    }`}
+                  >
+                    {msg.role === "assistant" ? (
+                      <div className="prose-contract">
+                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                      </div>
+                    ) : (
+                      msg.content
+                    )}
+                  </div>
+
+                  {/* Collapsible sources */}
+                  {msg.role === "assistant" && msg.sources && msg.sources.length > 0 && (
+                    <div className="ml-1">
+                      <button
+                        onClick={() => toggleSources(i)}
+                        className="flex items-center gap-1 text-xs text-brand-muted hover:text-brand-primary transition-colors"
+                      >
+                        <svg
+                          className={`w-3 h-3 transition-transform ${expandedSources.has(i) ? "rotate-90" : ""}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                        {expandedSources.has(i) ? "Hide" : "View"} {msg.sources.length} source
+                        {msg.sources.length !== 1 ? "s" : ""}
+                      </button>
+
+                      {expandedSources.has(i) && (
+                        <div className="mt-1.5 space-y-1.5">
+                          {msg.sources.map((src, j) => (
+                            <div
+                              key={j}
+                              className="bg-brand-surface border border-brand-border rounded-xl px-3 py-2.5"
+                            >
+                              <p className="text-[10px] font-semibold text-brand-muted uppercase tracking-wide mb-1">
+                                Source {j + 1} — contract text
+                              </p>
+                              <p className="text-xs text-brand-muted leading-relaxed line-clamp-4">
+                                {src}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    msg.content
                   )}
                 </div>
               </div>

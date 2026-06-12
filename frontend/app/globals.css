@@ -161,6 +161,42 @@ body {
   margin: 0.75em 0;
 }
 
+/* ── Print / PDF export ───────────────────────────────────────────── */
+@media print {
+  @page { margin: 1.5cm 2cm; }
+
+  /* Force all text to black */
+  * { color: #000 !important; }
+
+  /* Strip card decoration */
+  .analysis-card {
+    background: transparent !important;
+    border: none !important;
+    border-left: none !important;
+    border-radius: 0 !important;
+    padding: 0 0 1.25rem 0 !important;
+    box-shadow: none !important;
+  }
+
+  .analysis-card-title {
+    font-size: 0.65rem !important;
+    font-weight: 700 !important;
+    color: #111 !important;
+    letter-spacing: 0.08em !important;
+    border-bottom: 1px solid #bbb !important;
+    padding-bottom: 0.2rem !important;
+    margin-bottom: 0.6rem !important;
+  }
+
+  .analysis-card .prose-contract,
+  .analysis-card .prose-contract p,
+  .analysis-card .prose-contract li,
+  .analysis-card .prose-contract strong {
+    color: #111 !important;
+    font-size: 0.8rem !important;
+  }
+}
+
 .prose-contract table {
   width: 100%;
   border-collapse: collapse;

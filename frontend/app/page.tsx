@@ -167,7 +167,7 @@ export default function Home() {
       if (askData.conversation_id && askData.conversation_id !== convId) {
         setConversationId(askData.conversation_id);
       }
-      setMessages((prev) => [...prev, { role: "assistant", content: askData.answer }]);
+      setMessages((prev) => [...prev, { role: "assistant", content: askData.answer, sources: askData.sources || [] }]);
     } catch (err) {
       setChatError(err instanceof Error ? err.message : "Failed to send message");
     } finally {
@@ -191,11 +191,16 @@ export default function Home() {
 
   const analyzed = !!analysis;
 
+  const handleAskQuestion = (question: string) => {
+    setInput(question);
+    setActiveTab("chat");
+  };
+
   return (
     <div className="flex flex-col md:flex-row md:h-screen md:overflow-hidden bg-brand-bg transition-colors duration-200">
 
       {/* ── LEFT PANEL ────────────────────────────────────────────────── */}
-      <aside className="w-full md:w-72 lg:w-80 md:shrink-0 bg-brand-surface border-b md:border-b-0 md:border-r border-brand-border md:h-full md:overflow-y-auto flex flex-col transition-colors duration-200">
+      <aside className="print:hidden w-full md:w-72 lg:w-80 md:shrink-0 bg-brand-surface border-b md:border-b-0 md:border-r border-brand-border md:h-full md:overflow-y-auto flex flex-col transition-colors duration-200">
 
         {/* Brand + dark mode toggle */}
         <div className="px-4 py-3.5 border-b border-brand-border shrink-0 flex items-center justify-between">
@@ -277,7 +282,7 @@ export default function Home() {
       <main className="flex-1 flex flex-col md:h-full md:overflow-hidden transition-colors duration-200">
 
         {/* Tab bar */}
-        <div className="bg-brand-surface border-b border-brand-border px-5 flex items-end shrink-0 h-12">
+        <div className="print:hidden bg-brand-surface border-b border-brand-border px-5 flex items-end shrink-0 h-12">
           {(["chat", "analysis"] as const).map((tab) => (
             <button
               key={tab}
@@ -307,13 +312,14 @@ export default function Home() {
 
           {/* ANALYSIS TAB */}
           {activeTab === "analysis" && (
-            <div className="flex-1 h-full overflow-y-auto">
+            <div className="flex-1 h-full overflow-y-auto print:h-auto print:overflow-visible">
               <div className="p-6">
                 {(analyzing || analysis || analysisError) ? (
                   <AnalysisSection
                     analyzing={analyzing}
                     analysis={analysis}
                     analysisError={analysisError}
+                    onAskQuestion={handleAskQuestion}
                   />
                 ) : (
                   <div className="py-24 flex flex-col items-center justify-center gap-3 text-center">
@@ -336,7 +342,7 @@ export default function Home() {
 
         {/* Input bar — only shown on Chat tab */}
         {activeTab === "chat" && (
-          <div className="bg-brand-surface border-t border-brand-border p-4 shrink-0">
+          <div className="print:hidden bg-brand-surface border-t border-brand-border p-4 shrink-0">
             {contractId && (
               <div className="flex flex-wrap gap-2 mb-3">
                 {SUGGESTION_QUESTIONS.map((q) => (

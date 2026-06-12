@@ -229,7 +229,8 @@ async def ask(request: AskRequest):
 
     return {
         "answer": ai_message,
-        "conversation_id": conversation_id
+        "conversation_id": conversation_id,
+        "sources": [chunk for _, chunk in ranked[:3]]
     }
 
 @app.post("/conversations")
@@ -283,6 +284,13 @@ async def analyze(request: AnalyzeRequest):
         ## Red Flags
         List every concern in one section as bullet points. For each flag explain what it says and WHY it is dangerous or unusual:
         - **[Flag name]:** what the clause says and the real-world risk it creates for the reader
+
+        ## Risky Clauses
+        Quote specific sentences verbatim from the contract that carry legal or financial risk. Format each entry EXACTLY as shown — do not deviate from this format:
+        - [HIGH] "exact quoted text from contract" — one sentence explaining the risk
+        - [MEDIUM] "exact quoted text from contract" — one sentence explaining the concern
+        - [LOW] "exact quoted text from contract" — one sentence explaining the minor concern
+        Include 3–6 entries covering the most critical clauses. Only quote text that appears word-for-word in the contract.
 
         ## Risk Level
         State the overall risk as **Low**, **Medium**, or **High**, then explain in 2–3 sentences WHY it is that level — what specific clauses or missing protections drove that rating.

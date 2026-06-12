@@ -1,4 +1,4 @@
-import type { ParsedAnalysis, RiskLevel } from "./types";
+import type { ParsedAnalysis, RiskLevel, RiskyClause } from "./types";
 
 // Matches ## Heading Name or numbered variants like ## 1. Heading Name or 1. Heading Name
 function getSectionContent(text: string, heading: string): string {
@@ -20,6 +20,41 @@ function getSectionContent(text: string, heading: string): string {
   return (endMatch ? remaining.slice(0, endMatch.index) : remaining).trim();
 }
 
+function parseRiskyClauses(raw: string): RiskyClause[] {
+  const section = getSectionContent(raw, "Risky Clauses");
+  if (!section) return [];
+
+  const clauses: RiskyClause[] = [];
+  const lines = section.split("\n");
+
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed) continue;
+
+    // Match HIGH / MEDIUM / LOW anywhere in the line
+    const levelMatch = trimmed.match(/\b(HIGH|MEDIUM|LOW)\b/i);
+    if (!levelMatch) continue;
+
+    // Extract the first quoted string (straight or curly quotes, min 10 chars)
+    const quoteMatch = trimmed.match(/[“”"]([^“”"]{10,})[“”"]/);
+    if (!quoteMatch) continue;
+
+    const quote = quoteMatch[1].trim();
+    const afterQuote = trimmed.slice(trimmed.indexOf(quoteMatch[0]) + quoteMatch[0].length);
+    const explanation = afterQuote.replace(/^\s*[—–\-:]\s*/, "").trim();
+
+    if (explanation) {
+      clauses.push({
+        level: levelMatch[1].toUpperCase() as "HIGH" | "MEDIUM" | "LOW",
+        quote,
+        explanation,
+      });
+    }
+  }
+
+  return clauses;
+}
+
 export function parseAnalysis(raw: string): ParsedAnalysis {
   const summary = getSectionContent(raw, "Summary");
   const parties = getSectionContent(raw, "Parties");
@@ -27,6 +62,7 @@ export function parseAnalysis(raw: string): ParsedAnalysis {
   const payment = getSectionContent(raw, "Payment Terms");
   const termination = getSectionContent(raw, "Termination");
   const redFlags = getSectionContent(raw, "Red Flags");
+  const riskyClauses = parseRiskyClauses(raw);
   const riskRaw = getSectionContent(raw, "Risk Level");
 
   // Fallback: getSectionContent misses the last section when there's no trailing newline after the heading
@@ -49,5 +85,5 @@ export function parseAnalysis(raw: string): ParsedAnalysis {
     .replace(/[*#_]/g, "")
     .trim();
 
-  return { summary, parties, obligations, payment, termination, redFlags, riskLevel, riskExplanation };
+  return { summary, parties, obligations, payment, termination, redFlags, riskyClauses, riskLevel, riskExplanation };
 }
