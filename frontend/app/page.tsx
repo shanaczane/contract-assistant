@@ -32,21 +32,16 @@ export default function Home() {
   // Layout
   const [activeTab, setActiveTab] = useState<"chat" | "analysis">("chat");
   const [input, setInput] = useState("");
-  const [darkMode, setDarkMode] = useState(() => {
-    if (typeof window === "undefined") return false;
+  // Dark mode is managed via the DOM class, not React state
+  useEffect(() => {
     const saved = localStorage.getItem("theme");
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-    return saved ? saved === "dark" : prefersDark;
-  });
-
-  // Sync dark class on <html> on mount
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", darkMode);
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    const shouldBeDark = saved ? saved === "dark" : prefersDark;
+    document.documentElement.classList.toggle("dark", shouldBeDark);
+  }, []);
 
   const toggleDark = () => {
-    const next = !darkMode;
-    setDarkMode(next);
+    const next = !document.documentElement.classList.contains("dark");
     document.documentElement.classList.toggle("dark", next);
     localStorage.setItem("theme", next ? "dark" : "light");
   };
@@ -222,17 +217,14 @@ export default function Home() {
             className="w-8 h-8 rounded-lg border border-brand-border flex items-center justify-center text-brand-muted hover:text-brand-text hover:border-brand-primary transition-colors"
             aria-label="Toggle dark mode"
           >
-            {darkMode ? (
-              /* Sun icon */
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
-              </svg>
-            ) : (
-              /* Moon icon */
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-              </svg>
-            )}
+            {/* Sun: visible in dark mode */}
+            <svg className="hidden dark:block w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+            </svg>
+            {/* Moon: visible in light mode */}
+            <svg className="block dark:hidden w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
           </button>
         </div>
 
