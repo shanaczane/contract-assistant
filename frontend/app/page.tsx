@@ -214,7 +214,7 @@ export default function Home() {
           {/* Dark mode toggle */}
           <button
             onClick={toggleDark}
-            className="w-8 h-8 rounded-lg border border-brand-border flex items-center justify-center text-brand-muted hover:text-brand-text hover:border-brand-primary transition-colors"
+            className="w-8 h-8 rounded-lg border border-brand-border flex items-center justify-center text-brand-muted hover:text-brand-text hover:border-brand-primary active:scale-90 transition-all"
             aria-label="Toggle dark mode"
           >
             {/* Sun: visible in dark mode */}
@@ -258,7 +258,7 @@ export default function Home() {
               )}
               <button
                 onClick={() => setActiveTab("analysis")}
-                className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-brand-primary hover:underline active:opacity-60 transition-opacity"
               >
                 View full analysis
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -341,7 +341,7 @@ export default function Home() {
                   <button
                     key={q}
                     onClick={() => setInput(q)}
-                    className="text-xs px-3 py-1.5 rounded-full border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-colors"
+                    className="text-xs px-3 py-1.5 rounded-full border border-brand-border text-brand-muted hover:border-brand-primary hover:text-brand-primary hover:bg-brand-bg active:scale-95 transition-all"
                   >
                     {q}
                   </button>
@@ -362,9 +362,9 @@ export default function Home() {
               <button
                 onClick={handleInputSend}
                 disabled={chatLoading || !input.trim() || !contractId}
-                className="h-10 px-4 bg-brand-primary text-white text-sm font-medium rounded-xl hover:bg-blue-700 dark:hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2 shrink-0"
+                className="h-10 px-4 bg-brand-primary text-white text-sm font-medium rounded-xl hover:bg-blue-600 hover:scale-105 hover:shadow-lg dark:hover:bg-blue-500 active:scale-95 active:shadow-none disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 shrink-0"
               >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-4 h-4 rotate-90" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                 </svg>
                 Send

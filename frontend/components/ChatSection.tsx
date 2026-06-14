@@ -67,7 +67,7 @@ export default function ChatSection({ messages, chatLoading, chatError }: Props)
                     <div className="ml-1">
                       <button
                         onClick={() => toggleSources(i)}
-                        className="flex items-center gap-1 text-xs text-brand-muted hover:text-brand-primary transition-colors"
+                        className="flex items-center gap-1 text-xs text-brand-muted hover:text-brand-primary active:scale-95 transition-all"
                       >
                         <svg
                           className={`w-3 h-3 transition-transform ${expandedSources.has(i) ? "rotate-90" : ""}`}

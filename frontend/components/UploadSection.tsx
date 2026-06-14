@@ -113,7 +113,7 @@ export default function UploadSection({
                 {!analyzing && (
                   <button
                     onClick={onReset}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-brand-border text-xs font-medium text-brand-muted hover:border-brand-primary hover:text-brand-primary transition-colors"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg border border-brand-border text-xs font-medium text-brand-muted hover:border-brand-primary hover:text-brand-primary active:scale-95 transition-all"
                   >
                     <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
@@ -132,7 +132,7 @@ export default function UploadSection({
         {uploaded && !analyzed && !analyzing && (
           <button
             onClick={onAnalyze}
-            className="mt-4 w-full h-9 bg-brand-primary text-white text-sm font-medium rounded-xl hover:bg-blue-700 dark:hover:bg-blue-500 transition-colors flex items-center justify-center gap-2"
+            className="mt-4 w-full h-9 bg-brand-primary text-white text-sm font-medium rounded-xl hover:bg-blue-700 dark:hover:bg-blue-500 hover:shadow-md active:scale-95 active:shadow-none transition-all flex items-center justify-center gap-2"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
